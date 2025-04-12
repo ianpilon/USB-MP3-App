@@ -27,7 +27,46 @@ SONGS_DIR.mkdir(exist_ok=True)
 @app.get("/")
 async def read_root():
     """Root endpoint to check if server is running."""
-    return {"status": "ok", "message": "DJ USB Server is running"}
+    return {
+        "status": "ok",
+        "message": "DJ USB Server is running",
+        "environment": "production" if PRODUCTION else "development",
+        "base_url": BASE_URL
+    }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint with system status."""
+    try:
+        songs_count = len(list(SONGS_DIR.glob("*.mp3")))
+        return {
+            "status": "healthy",
+            "songs_directory": str(SONGS_DIR),
+            "songs_count": songs_count,
+            "environment": "production" if PRODUCTION else "development",
+            "base_url": BASE_URL
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/test")
+async def test_endpoint():
+    """Test endpoint that returns a simple audio metadata structure."""
+    return {
+        "test_song": {
+            "title": "Test Audio",
+            "artist": "Test Artist",
+            "album": "Test Album",
+            "duration": 180,  # 3 minutes
+            "size": 1024 * 1024 * 3,  # 3MB
+            "url": f"{BASE_URL}/songs/test.mp3"
+        },
+        "server_info": {
+            "environment": "production" if PRODUCTION else "development",
+            "base_url": BASE_URL,
+            "songs_directory": str(SONGS_DIR)
+        }
+    }
 
 @app.get("/songs")
 async def list_songs():

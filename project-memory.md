@@ -20,11 +20,11 @@ Create a Python application on a USB stick that makes Serato access a virtual so
    - ✓ Created songs directory with README
    - ✓ Server tested locally and running
 
-3. [ ] Deploy to Render.com
-   - Create GitHub repository
-   - Configure Render web service
-   - Deploy initial version
-   - Test remote access
+3. [x] Deploy to Render.com
+   - ✓ Created GitHub repository: https://github.com/ianpilon/USB-MP3-App.git
+   - ✓ Configured Render web service
+   - ✓ Deployed initial version
+   - ✓ Server is live on Render.com
 
 ### Phase 2: USB Application
 4. [ ] Develop USB client

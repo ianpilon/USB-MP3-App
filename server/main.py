@@ -16,6 +16,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Environment configuration
+PRODUCTION = os.environ.get("RENDER", False)
+BASE_URL = "https://dj-usb-server-usb-mp3-app.onrender.com" if PRODUCTION else "http://0.0.0.0:8000"
+
 # Directory where songs are stored (relative to server root)
 SONGS_DIR = Path(__file__).parent / "songs"
 SONGS_DIR.mkdir(exist_ok=True)
@@ -36,7 +40,7 @@ async def list_songs():
                 metadata = {
                     "title": file_path.stem,
                     "filename": file_path.name,
-                    "url": f"http://0.0.0.0:8000/songs/{file_path.name}",
+                    "url": f"{BASE_URL}/songs/{file_path.name}",
                     "size": file_path.stat().st_size,
                     "duration": int(audio.info.length) if audio else None,
                 }
@@ -58,7 +62,7 @@ async def list_songs():
                 songs.append({
                     "title": file_path.stem,
                     "filename": file_path.name,
-                    "url": f"http://0.0.0.0:8000/songs/{file_path.name}",
+                    "url": f"{BASE_URL}/songs/{file_path.name}",
                     "size": file_path.stat().st_size,
                 })
         

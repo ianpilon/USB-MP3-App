@@ -415,6 +415,27 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('a[href="#home"]').classList.add('active');
     document.getElementById('home').classList.add('active');
     
+    // Add event listeners to home page buttons
+    document.querySelectorAll('.cta-buttons a').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            
+            // Update active nav link
+            navLinks.forEach(link => link.classList.remove('active'));
+            document.querySelector(`nav ul li a[href="${this.getAttribute('href')}"]`).classList.add('active');
+            
+            // Show target section
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById(targetId).classList.add('active');
+            
+            // Load songs if songs section is activated
+            if (targetId === 'songs') {
+                loadSongs();
+            }
+        });
+    });
+    
     // Function to show upgrade prompt when limit is reached
     function showUpgradePrompt(limitData) {
         // Create modal for upgrade prompt

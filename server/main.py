@@ -5,7 +5,20 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from auth import verify_token, create_access_token
 from pathlib import Path
 import os
+import sys
+import logging
 import mutagen
+from typing import Optional
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="DJ USB Server",
@@ -25,12 +38,21 @@ app.add_middleware(
 PRODUCTION = os.environ.get("RENDER", False)
 BASE_URL = "https://dj-usb-server-usb-mp3-app.onrender.com" if PRODUCTION else "http://0.0.0.0:8000"
 
+logger.info(f"Starting server in {'production' if PRODUCTION else 'development'} mode")
+logger.info(f"Base URL: {BASE_URL}")
+
 # Directory where songs are stored
 if PRODUCTION:
     SONGS_DIR = Path("/tmp/songs")
 else:
     SONGS_DIR = Path(__file__).parent / "songs"
-SONGS_DIR.mkdir(exist_ok=True, parents=True)
+
+try:
+    SONGS_DIR.mkdir(exist_ok=True, parents=True)
+    logger.info(f"Songs directory created at: {SONGS_DIR}")
+    logger.info(f"Songs directory permissions: {oct(SONGS_DIR.stat().st_mode)[-3:]}")
+except Exception as e:
+    logger.error(f"Failed to create songs directory: {e}")
 
 @app.get("/")
 async def read_root():

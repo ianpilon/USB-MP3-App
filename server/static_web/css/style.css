@@ -314,6 +314,44 @@ h2 {
     font-size: 0.9rem;
 }
 
+.download-instructions {
+    margin-top: 2rem;
+    background-color: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.download-instructions h4 {
+    margin-bottom: 1rem;
+    color: #1f2937;
+    font-size: 1.1rem;
+}
+
+.download-instructions ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.download-instructions li {
+    margin-bottom: 0.5rem;
+    color: #4b5563;
+}
+
+.download-instructions code {
+    background-color: #e5e7eb;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
+.download-instructions .requirements {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-top: 1rem;
+}
+
 /* Audio Player */
 .audio-player {
     background-color: #f9fafb;

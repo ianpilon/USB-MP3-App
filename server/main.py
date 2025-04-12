@@ -35,7 +35,7 @@ app.add_middleware(
 )
 
 # Environment configuration
-PRODUCTION = os.environ.get("RENDER", False)
+PRODUCTION = os.environ.get("RENDER", "false").lower() == "true"
 BASE_URL = "https://dj-usb-server-usb-mp3-app.onrender.com" if PRODUCTION else "http://0.0.0.0:8000"
 
 logger.info(f"Starting server in {'production' if PRODUCTION else 'development'} mode")

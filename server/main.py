@@ -222,6 +222,31 @@ async def get_song(filename: str):
         headers={"Accept-Ranges": "bytes"}
     )
 
+# Installer directory setup
+INSTALLER_DIR = Path(__file__).parent / "installers"
+INSTALLER_DIR.mkdir(exist_ok=True)
+
+@app.get("/download/{platform}")
+async def download_installer(platform: str):
+    """Download the installer for a specific platform."""
+    platform = platform.lower()
+    if platform not in ["macos", "windows", "linux"]:
+        raise HTTPException(status_code=400, detail="Invalid platform")
+    
+    installer_name = f"usb-mp3-tool-{platform}"
+    if platform == "windows":
+        installer_name += ".exe"
+    
+    installer_path = INSTALLER_DIR / installer_name
+    if not installer_path.exists():
+        raise HTTPException(status_code=404, detail=f"Installer for {platform} not available yet")
+    
+    return FileResponse(
+        installer_path,
+        filename=installer_name,
+        media_type="application/octet-stream"
+    )
+
 # Mount the static files
 try:
     static_dir = Path(__file__).parent / "static_web"

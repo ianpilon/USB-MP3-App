@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Form, Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -85,8 +85,12 @@ async def health_check():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Free tier limits
+FREE_TIER_SONG_LIMIT = 25
+
 @app.post("/upload")
 async def upload_file(
+    request: Request,
     file: UploadFile = File(...),
     token: HTTPAuthorizationCredentials = Depends(verify_token)
 ):
@@ -95,6 +99,22 @@ async def upload_file(
         raise HTTPException(status_code=400, detail="Only MP3 files are allowed")
     
     try:
+        # Check for free tier limits
+        song_count = len(list(SONGS_DIR.glob("*.mp3")))
+        if song_count >= FREE_TIER_SONG_LIMIT:
+            # In a real system, we would check the user's subscription status
+            # For now, we'll just enforce the limit for everyone
+            return JSONResponse(
+                status_code=402,  # Payment Required
+                content={
+                    "error": "Free tier limit reached",
+                    "detail": f"You have reached the free tier limit of {FREE_TIER_SONG_LIMIT} songs. Please upgrade to upload more songs.",
+                    "current_count": song_count,
+                    "limit": FREE_TIER_SONG_LIMIT,
+                    "upgrade_url": f"{request.base_url}web/#pricing"
+                }
+            )
+        
         file_path = SONGS_DIR / file.filename
         with open(file_path, "wb") as buffer:
             content = await file.read()
@@ -110,7 +130,14 @@ async def upload_file(
             file_path.unlink()  # Delete invalid file
             raise HTTPException(status_code=400, detail=f"Invalid MP3 file: {str(e)}")
         
-        return {"filename": file.filename, "size": len(content)}
+        # Return song count information along with the upload result
+        return {
+            "filename": file.filename, 
+            "size": len(content),
+            "song_count": song_count + 1,
+            "limit": FREE_TIER_SONG_LIMIT,
+            "remaining": FREE_TIER_SONG_LIMIT - (song_count + 1)
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

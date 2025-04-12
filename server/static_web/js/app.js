@@ -147,6 +147,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: formData
                 });
                 
+                // Handle free tier limit reached
+                if (uploadResponse.status === 402) {
+                    const limitData = await uploadResponse.json();
+                    showUpgradePrompt(limitData);
+                    return; // Stop the upload process
+                }
+                
                 if (!uploadResponse.ok) {
                     throw new Error(`Failed to upload ${file.name}`);
                 }
@@ -161,8 +168,18 @@ document.addEventListener('DOMContentLoaded', function() {
             filesToUpload = [];
             updateFileList();
             
-            // Show success message
-            alert('All files uploaded successfully!');
+            // Show success message with remaining upload count if provided
+            const lastResponse = await uploadResponse.json();
+            if (lastResponse.remaining !== undefined) {
+                alert(`Upload complete! You have ${lastResponse.remaining} song uploads remaining in your free plan.`);
+                
+                // Show upgrade reminder if getting close to limit
+                if (lastResponse.remaining <= 5) {
+                    showUpgradeReminder(lastResponse.remaining);
+                }
+            } else {
+                alert('All files uploaded successfully!');
+            }
             
             // Reload song list
             if (document.getElementById('songs').classList.contains('active')) {
@@ -397,4 +414,104 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize by showing home section
     document.querySelector('a[href="#home"]').classList.add('active');
     document.getElementById('home').classList.add('active');
+    
+    // Function to show upgrade prompt when limit is reached
+    function showUpgradePrompt(limitData) {
+        // Create modal for upgrade prompt
+        const upgradeModal = document.createElement('div');
+        upgradeModal.className = 'confirm-delete'; // Reusing the same modal style
+        upgradeModal.innerHTML = `
+            <div class="confirm-delete-modal" style="max-width: 600px;">
+                <h3>Free Plan Limit Reached</h3>
+                <p>You've reached the limit of ${limitData.limit} songs on your free plan.</p>
+                <p>Upgrade to our Premium plan for only $2/month to store up to 100 songs!</p>
+                <div class="confirm-delete-buttons" style="justify-content: center;">
+                    <button class="confirm-delete-cancel">Maybe Later</button>
+                    <a href="#pricing" class="button primary" style="margin-left: 1rem;">Upgrade Now</a>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(upgradeModal);
+        
+        // Handle close button
+        upgradeModal.querySelector('.confirm-delete-cancel').addEventListener('click', () => {
+            document.body.removeChild(upgradeModal);
+        });
+        
+        // Handle upgrade button click
+        upgradeModal.querySelector('a.button.primary').addEventListener('click', () => {
+            document.body.removeChild(upgradeModal);
+            // Change the active tab to pricing
+            navLinks.forEach(link => link.classList.remove('active'));
+            document.querySelector('a[href="#pricing"]').classList.add('active');
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById('pricing').classList.add('active');
+        });
+    }
+    
+    // Function to show upgrade reminder when approaching limit
+    function showUpgradeReminder(remaining) {
+        const reminderEl = document.createElement('div');
+        reminderEl.className = 'upgrade-reminder';
+        reminderEl.innerHTML = `
+            <div class="reminder-content">
+                <p><strong>Only ${remaining} uploads left!</strong> Upgrade to Premium for more storage.</p>
+                <a href="#pricing" class="button primary small">Upgrade</a>
+                <button class="close-reminder"><i class="fas fa-times"></i></button>
+            </div>
+        `;
+        
+        // Add some quick styling
+        const style = document.createElement('style');
+        style.textContent = `
+            .upgrade-reminder {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background-color: #fff;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border-radius: 8px;
+                z-index: 1000;
+                max-width: 300px;
+            }
+            .reminder-content {
+                padding: 15px;
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            .reminder-content p {
+                width: 100%;
+                margin-bottom: 10px;
+                color: #4b5563;
+            }
+            .button.small {
+                padding: 5px 10px;
+                font-size: 0.8rem;
+            }
+            .close-reminder {
+                background: none;
+                border: none;
+                color: #9ca3af;
+                margin-left: auto;
+                cursor: pointer;
+                font-size: 0.9rem;
+            }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(reminderEl);
+        
+        // Handle close button
+        reminderEl.querySelector('.close-reminder').addEventListener('click', () => {
+            document.body.removeChild(reminderEl);
+        });
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (document.body.contains(reminderEl)) {
+                document.body.removeChild(reminderEl);
+            }
+        }, 10000);
+    }
 });

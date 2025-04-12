@@ -104,6 +104,18 @@
     <section id="songs" class="section">
         <div class="container">
             <h2>Your Music Library</h2>
+            <div id="audioPlayer" class="audio-player" style="display: none;">
+                <div class="player-song-info">
+                    <div class="player-song-title">No song selected</div>
+                    <div class="player-song-artist">Select a song to play</div>
+                </div>
+                <div class="player-controls">
+                    <audio id="audioElement" controls></audio>
+                    <div class="player-buttons">
+                        <button id="closePlayer" class="close-player"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+            </div>
             <div id="songList" class="song-list">
                 <div class="loading">Loading songs...</div>
             </div>

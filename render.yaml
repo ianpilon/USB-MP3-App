@@ -2,7 +2,10 @@ services:
   - type: web
     name: dj-usb-server
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install -r requirements.txt
+      mkdir -p /opt/render/project/src/server/installers
+      cp -r server/installers/* /opt/render/project/src/server/installers/
     startCommand: cd server && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION

@@ -25,9 +25,12 @@ app.add_middleware(
 PRODUCTION = os.environ.get("RENDER", False)
 BASE_URL = "https://dj-usb-server-usb-mp3-app.onrender.com" if PRODUCTION else "http://0.0.0.0:8000"
 
-# Directory where songs are stored (relative to server root)
-SONGS_DIR = Path(__file__).parent / "songs"
-SONGS_DIR.mkdir(exist_ok=True)
+# Directory where songs are stored
+if PRODUCTION:
+    SONGS_DIR = Path("/tmp/songs")
+else:
+    SONGS_DIR = Path(__file__).parent / "songs"
+SONGS_DIR.mkdir(exist_ok=True, parents=True)
 
 @app.get("/")
 async def read_root():

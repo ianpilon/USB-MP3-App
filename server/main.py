@@ -1,7 +1,8 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Form
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
 from auth import verify_token, create_access_token
 from pathlib import Path
 import os
@@ -57,6 +58,11 @@ except Exception as e:
 @app.get("/")
 async def read_root():
     """Root endpoint to check if server is running."""
+    return RedirectResponse(url="/web/")
+
+@app.get("/api")
+async def api_info():
+    """API information endpoint."""
     return {
         "status": "ok",
         "message": "DJ USB Server is running",
@@ -188,6 +194,14 @@ async def get_song(filename: str):
         filename=filename,
         headers={"Accept-Ranges": "bytes"}
     )
+
+# Mount the static files
+try:
+    static_dir = Path(__file__).parent / "static_web"
+    app.mount("/web", StaticFiles(directory=static_dir, html=True), name="web")
+    logger.info(f"Static web files mounted at /web from {static_dir}")
+except Exception as e:
+    logger.error(f"Failed to mount static web files: {e}")
 
 if __name__ == "__main__":
     import uvicorn

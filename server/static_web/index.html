@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJ USB Manager</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">DJ USB Manager</div>
+            <ul>
+                <li><a href="#home" class="active">Home</a></li>
+                <li><a href="#upload">Upload Music</a></li>
+                <li><a href="#download">USB Tool</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="home" class="section active">
+        <div class="container">
+            <h1>Your music, anywhere you DJ</h1>
+            <p class="subtitle">Upload your music once, sync to any USB drive, and start DJing. No installations required.</p>
+            <div class="cta-buttons">
+                <a href="#upload" class="button primary">Upload Music</a>
+                <a href="#download" class="button secondary">Download USB Tool</a>
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <h3>Upload your music</h3>
+                    <p>Upload your MP3 files directly to our secure cloud storage.</p>
+                </div>
+                <div class="feature">
+                    <div class="icon"><i class="fas fa-usb"></i></div>
+                    <h3>Sync to USB</h3>
+                    <p>Download our USB tool and sync your music to any USB drive.</p>
+                </div>
+                <div class="feature">
+                    <div class="icon"><i class="fas fa-sync-alt"></i></div>
+                    <h3>Always in sync</h3>
+                    <p>Your music stays in sync across all your USB drives automatically.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="upload" class="section">
+        <div class="container">
+            <h2>Upload Music</h2>
+            <div class="upload-area" id="dropzone">
+                <div class="upload-message">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drag & drop MP3 files here or click to select files</p>
+                    <input type="file" id="fileInput" multiple accept=".mp3" style="display: none;">
+                </div>
+            </div>
+
+            <div id="fileList" class="file-list"></div>
+
+            <button id="uploadButton" class="button primary" style="display: none;">Upload Files</button>
+            <div id="uploadProgress" class="progress" style="display: none;">
+                <div class="progress-bar"></div>
+                <div class="progress-text">0%</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="download" class="section">
+        <div class="container">
+            <h2>Download USB Tool</h2>
+            <p class="subtitle">Download our USB tool to sync your music to any USB drive. No installation required.</p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-icon"><i class="fas fa-download"></i></div>
+                    <h3>Download</h3>
+                    <p>Download the USB tool for your operating system</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon"><i class="fas fa-copy"></i></div>
+                    <h3>Copy to USB</h3>
+                    <p>Copy the tool to your USB drive</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon"><i class="fas fa-play"></i></div>
+                    <h3>Start syncing</h3>
+                    <p>Run the tool to start syncing your music</p>
+                </div>
+            </div>
+
+            <div class="download-buttons">
+                <a href="/download/mac" class="button primary"><i class="fab fa-apple"></i> Download for macOS</a>
+                <p class="note">Windows and Linux versions coming soon</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="songs" class="section">
+        <div class="container">
+            <h2>Your Music Library</h2>
+            <div id="songList" class="song-list">
+                <div class="loading">Loading songs...</div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 DJ USB Manager</p>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

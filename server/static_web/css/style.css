@@ -314,6 +314,23 @@ h2 {
     font-size: 0.9rem;
 }
 
+.os-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.os-buttons .button {
+    min-width: 200px;
+    text-align: center;
+}
+
+.os-buttons .button i {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+}
+
 .download-instructions {
     margin-top: 2rem;
     background-color: #f9fafb;
@@ -346,10 +363,43 @@ h2 {
     font-size: 0.9rem;
 }
 
-.download-instructions .requirements {
+.requirements-box {
+    background-color: #eff6ff;
+    border: 1px solid #dbeafe;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1.5rem;
+}
+
+.requirements-box h5 {
+    display: flex;
+    align-items: center;
+    color: #1e40af;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.requirements-box h5 i {
+    margin-right: 0.5rem;
+}
+
+.requirements-box p {
+    color: #1e3a8a;
     font-size: 0.9rem;
-    color: #6b7280;
-    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.requirements-box p:last-child {
+    margin-bottom: 0;
+}
+
+.requirements-box a {
+    color: #3b82f6;
+    text-decoration: underline;
+}
+
+.requirements-box a:hover {
+    color: #1d4ed8;
 }
 
 /* Audio Player */

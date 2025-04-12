@@ -1,11 +1,16 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Form
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from auth import verify_token, create_access_token
 from pathlib import Path
 import os
 import mutagen
 
-app = FastAPI(title="DJ USB Server")
+app = FastAPI(
+    title="DJ USB Server",
+    description="API for managing DJ music files with secure upload functionality"
+)
 
 # Enable CORS for local development
 app.add_middleware(
@@ -48,6 +53,42 @@ async def health_check():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/upload")
+async def upload_file(
+    file: UploadFile = File(...),
+    token: HTTPAuthorizationCredentials = Depends(verify_token)
+):
+    """Upload an MP3 file to the server."""
+    if not file.filename.endswith(".mp3"):
+        raise HTTPException(status_code=400, detail="Only MP3 files are allowed")
+    
+    try:
+        file_path = SONGS_DIR / file.filename
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        # Verify it's a valid MP3
+        try:
+            audio = mutagen.File(file_path)
+            if not audio:
+                file_path.unlink()  # Delete invalid file
+                raise HTTPException(status_code=400, detail="Invalid MP3 file")
+        except Exception as e:
+            file_path.unlink()  # Delete invalid file
+            raise HTTPException(status_code=400, detail=f"Invalid MP3 file: {str(e)}")
+        
+        return {"filename": file.filename, "size": len(content)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/auth/token")
+async def get_upload_token():
+    """Get a temporary token for file uploads."""
+    # In production, you would verify credentials here
+    token = create_access_token({"sub": "upload_user"})
+    return {"access_token": token, "token_type": "bearer"}
 
 @app.get("/test")
 async def test_endpoint():

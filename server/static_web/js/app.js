@@ -7,25 +7,48 @@ document.addEventListener('DOMContentLoaded', function() {
     const navLinks = document.querySelectorAll('nav ul li a');
     const sections = document.querySelectorAll('.section');
 
+    // Handle initial hash on page load
+    const handleNavigation = (targetId) => {
+        if (!targetId) return;
+        
+        // Update active nav link
+        navLinks.forEach(link => link.classList.remove('active'));
+        const activeLink = document.querySelector(`nav ul li a[href="#${targetId}"]`);
+        if (activeLink) activeLink.classList.add('active');
+        
+        // Show target section
+        sections.forEach(section => section.classList.remove('active'));
+        const targetSection = document.getElementById(targetId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+            // Load songs if songs section is activated
+            if (targetId === 'songs') {
+                loadSongs();
+            }
+        }
+    };
+
+    // Check initial hash
+    const initialHash = window.location.hash.substring(1);
+    if (initialHash) {
+        handleNavigation(initialHash);
+    }
+
     // Change active section when nav link is clicked
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const targetId = this.getAttribute('href').substring(1);
-            
-            // Update active nav link
-            navLinks.forEach(link => link.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Show target section
-            sections.forEach(section => section.classList.remove('active'));
-            document.getElementById(targetId).classList.add('active');
-
-            // Load songs if songs section is activated
-            if (targetId === 'songs') {
-                loadSongs();
-            }
+            handleNavigation(targetId);
         });
+    });
+
+    // Handle hash changes
+    window.addEventListener('hashchange', () => {
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+            handleNavigation(hash);
+        }
     });
 
     // File Upload Functionality

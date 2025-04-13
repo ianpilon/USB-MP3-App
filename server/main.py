@@ -1,9 +1,15 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Form, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Form, Request, Response, status
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
-from auth import verify_token, create_access_token
+from auth import (
+    verify_token, create_access_token, get_current_user, authenticate_user,
+    create_user, oauth
+)
+from models import UserCreate, User, Token
+from database import get_db, DBUser
+from sqlalchemy.orm import Session
 from pathlib import Path
 import os
 import sys
@@ -54,6 +60,91 @@ try:
     logger.info(f"Songs directory permissions: {oct(SONGS_DIR.stat().st_mode)[-3:]}")
 except Exception as e:
     logger.error(f"Failed to create songs directory: {e}")
+
+# Auth endpoints
+@app.post("/auth/signup", response_model=Token)
+async def signup(user: UserCreate, db: Session = Depends(get_db)):
+    # Check if user exists
+    db_user = db.query(DBUser).filter(DBUser.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create new user
+    db_user = create_user(db=db, user=user)
+    
+    # Create access token
+    access_token = create_access_token(data={"sub": db_user.email})
+    
+    return Token(
+        access_token=access_token,
+        user=User(
+            id=db_user.id,
+            email=db_user.email,
+            name=db_user.name,
+            is_active=db_user.is_active,
+            subscription_tier=db_user.subscription_tier
+        )
+    )
+
+@app.post("/auth/login", response_model=Token)
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token = create_access_token(data={"sub": user.email})
+    
+    return Token(
+        access_token=access_token,
+        user=User(
+            id=user.id,
+            email=user.email,
+            name=user.name,
+            is_active=user.is_active,
+            subscription_tier=user.subscription_tier
+        )
+    )
+
+@app.get("/auth/google")
+async def google_auth(request: Request):
+    redirect_uri = request.url_for('google_auth_callback')
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+@app.get("/auth/google/callback")
+async def google_auth_callback(request: Request, db: Session = Depends(get_db)):
+    token = await oauth.google.authorize_access_token(request)
+    user_info = await oauth.google.parse_id_token(request, token)
+    
+    # Check if user exists
+    db_user = db.query(DBUser).filter(DBUser.email == user_info['email']).first()
+    
+    if not db_user:
+        # Create new user
+        user = UserCreate(
+            email=user_info['email'],
+            name=user_info.get('name'),
+            oauth_provider='google',
+            oauth_id=user_info['sub']
+        )
+        db_user = create_user(db=db, user=user)
+    
+    # Create access token
+    access_token = create_access_token(data={"sub": db_user.email})
+    
+    # Redirect to frontend with token
+    response = RedirectResponse(url=f"/web/#auth-callback?token={access_token}")
+    response.set_cookie(
+        "access_token",
+        access_token,
+        httponly=True,
+        samesite='lax',
+        secure=os.getenv('PRODUCTION', 'false').lower() == 'true'
+    )
+    return response
 
 @app.get("/")
 async def read_root():
@@ -220,31 +311,6 @@ async def get_song(filename: str):
         media_type="audio/mpeg",
         filename=filename,
         headers={"Accept-Ranges": "bytes"}
-    )
-
-# Installer directory setup
-INSTALLER_DIR = Path(__file__).parent / "installers"
-INSTALLER_DIR.mkdir(exist_ok=True)
-
-@app.get("/download/{platform}")
-async def download_installer(platform: str):
-    """Download the installer for a specific platform."""
-    platform = platform.lower()
-    if platform not in ["macos", "windows", "linux"]:
-        raise HTTPException(status_code=400, detail="Invalid platform")
-    
-    installer_name = f"usb-mp3-tool-{platform}"
-    if platform == "windows":
-        installer_name += ".exe"
-    
-    installer_path = INSTALLER_DIR / installer_name
-    if not installer_path.exists():
-        raise HTTPException(status_code=404, detail=f"Installer for {platform} not available yet")
-    
-    return FileResponse(
-        installer_path,
-        filename=installer_name,
-        media_type="application/octet-stream"
     )
 
 # Mount the static files

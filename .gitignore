@@ -5,15 +5,39 @@ __pycache__/
 *.so
 .Python
 venv/
+venv311/
 ENV/
+env/
+env311/
+build/
+dist/
+*.egg-info/
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # Test files
 server/songs/*.mp3
+server/songs/temp/
 
 # Local development
 .env
 .env.local
+*.db
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Build files
+node_modules/
+*.pyc
+__pycache__/
